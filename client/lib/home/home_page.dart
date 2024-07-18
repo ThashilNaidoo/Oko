@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:client/home/crops_widget.dart';
 import 'package:client/home/ellipse_painter.dart';
@@ -5,22 +7,20 @@ import 'package:client/home/news_widget.dart';
 import 'package:client/home/pests_widget.dart';
 import 'package:client/home/weather_widget.dart';
 import 'package:tuple/tuple.dart';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  HomePage({super.key});
 
   @override
   HomePageState createState() => HomePageState();
 }
 
 class HomePageState extends State<HomePage> {
-  List<Widget> crops = [
-    CropItem(index: 0, name: 'Maize', yield: 60, showDelete: false, onDelete: () {}),
-    CropItem(index: 1, name: 'Maize', yield: 60, showDelete: false, onDelete: () {}),
-    CropItem(index: 2, name: 'Maize', yield: 60, showDelete: false, onDelete: () {}),
-    CropItem(index: 3, name: 'Maize', yield: 60, showDelete: false, onDelete: () {}),
-    CropItem(index: 4, name: 'Maize', yield: 60, showDelete: false, onDelete: () {}),
-  ];
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +65,7 @@ class HomePageState extends State<HomePage> {
                   children: [
                     WeatherWidget(screenWidth: screenWidth),
                     const SizedBox(height: 30),
-                    CropsWidget(
-                      items: crops,
-                    ),
+                    CropsWidget(),
                     const SizedBox(height: 10),
                     const NewsWidget(items: news),
                     const SizedBox(height: 30),

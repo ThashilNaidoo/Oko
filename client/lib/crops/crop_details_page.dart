@@ -29,7 +29,7 @@ class CropDetailPage extends StatelessWidget {
             ),
           ),
           InformationWidget(name: name),
-          const BackWidget(page: HomePage()),
+          BackWidget(page: HomePage()),
         ],
       ),
     );

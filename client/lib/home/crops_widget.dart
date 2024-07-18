@@ -1,15 +1,32 @@
+import 'package:client/home/crop_item.dart';
 import 'package:flutter/material.dart';
-import 'package:client/crops/crop_details_page.dart';
 import 'package:client/home/utils.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class Crop {
+  final String name;
+
+  const Crop({
+    required this.name,
+  });
+
+  factory Crop.fromJson(Map<String, dynamic> json) {
+    return switch (json) {
+      {
+        'name': String name,
+      } =>
+        Crop(name: name),
+      _ => throw const FormatException('Failed to load crop.'),
+    };
+  }
+}
 
 class CropsWidget extends StatefulWidget {
   const CropsWidget({
     super.key,
-    required this.items,
   });
 
-  final List<Widget> items;
   final bool showDelete = false;
 
   @override
@@ -17,37 +34,58 @@ class CropsWidget extends StatefulWidget {
 }
 
 class CropsState extends State<CropsWidget> {
-  List<Widget> items = List.empty();
+  List<Widget> items = [];
   int currentPage = 0;
 
   @override
   void initState() {
     super.initState();
-    widget.items.add(
-      GestureDetector(
-        onTap: () {
-          showAddCropDialog();
-        },
-        child: const AddCropItem(),
-      ),
-    );
-    items = generateCropItems(widget.items);
+    fetchCrops();
   }
 
-  List<Widget> generateCropItems(List<Widget> crops) {
-    return crops.map((widget) {
-      if (widget is CropItem) {
-        return CropItem(
-          index: widget.index,
-          name: widget.name,
-          yield: widget.yield,
-          showDelete: this.widget.showDelete,
-          onDelete: () => onDelete(widget.index),
-        );
-      } else {
-        return widget;
+  Future<void> fetchCrops() async {
+    const url = 'http://10.0.2.2:3000/crops';
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        List<dynamic> body = jsonDecode(response.body);
+        List<Crop> cropsJson = body.map((dynamic item) {
+          if (item is Map<String, dynamic>) {
+            return Crop.fromJson(item);
+          } else {
+            throw const FormatException('Invalid data format');
+          }
+        }).toList();
+
+        setState(() {
+          final updatedCrops = cropsJson.map((cropJson) {
+            return CropItem(
+              index: items.length,
+              name: cropJson.name,
+              yield: 60,
+              showDelete: this.widget.showDelete,
+              onDelete: () => onDelete(items.length),
+            );
+          }).toList();
+
+          items = List<Widget>.from(updatedCrops);
+          items.add(
+            GestureDetector(
+              onTap: () {
+                showAddCropDialog();
+              },
+              child: const AddCropItem(),
+            ),
+          );
+
+          print(items.toString());
+        });
       }
-    }).toList();
+    } catch (e) {
+      print(e.toString());
+      throw Exception('Failed to load crop');
+    }
   }
 
   void addCrop(String name) {
@@ -150,175 +188,6 @@ class CropsState extends State<CropsWidget> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class CropItem extends StatefulWidget {
-  CropItem({
-    super.key,
-    required this.index,
-    required this.name,
-    required this.yield,
-    required this.showDelete,
-    required this.onDelete,
-  });
-
-  final int index;
-  final String name;
-  final double yield;
-  bool showDelete;
-  VoidCallback onDelete;
-
-  @override
-  CropItemState createState() => CropItemState();
-}
-
-class CropItemState extends State<CropItem> {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CropDetailPage(
-              name: widget.name,
-              yield: widget.yield,
-            ),
-          ),
-        );
-      },
-      onLongPress: () {
-        setState(() {
-          widget.showDelete = true;
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.only(
-          left: 5.0,
-          right: 15.0,
-          top: 5.0,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.amber,
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0xFF999999),
-                        spreadRadius: 0,
-                        blurRadius: 4,
-                        offset: Offset(0, 4),
-                      )
-                    ],
-                  ),
-                ),
-                if (widget.showDelete)
-                  Positioned(
-                    top: -5,
-                    right: -5,
-                    child: GestureDetector(
-                      onTap: () {
-                        widget.onDelete();
-                      },
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Text(
-              widget.name,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Text(
-              'Yield: ${widget.yield.toString()}%',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AddCropItem extends StatelessWidget {
-  const AddCropItem({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: 5.0,
-        right: 15.0,
-        top: 5.0,
-      ),
-      child: SizedBox(
-        width: 100,
-        height: 100,
-        child: Column(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: const ShapeDecoration(
-                shape: CircleBorder(
-                    side: BorderSide(
-                  color: Color(0xFF6B9984),
-                  width: 2,
-                )),
-                color: Colors.transparent,
-              ),
-              child: Center(
-                child: Text(
-                  '+',
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFF0A5C36),
-                    fontSize: 25,
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-              ),
-            ),
-            Center(
-              child: Text(
-                'Add new crops',
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFF0A5C36),
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
