@@ -44,7 +44,7 @@ class CropsState extends State<CropsWidget> {
   }
 
   Future<void> fetchCrops() async {
-    const url = 'http://10.0.2.2:3000/crops';
+    const url = 'http://10.0.2.2:3000/crops?name=John%20Doe';
     try {
       final response = await http.get(Uri.parse(url));
 
@@ -65,7 +65,7 @@ class CropsState extends State<CropsWidget> {
               name: cropJson.name,
               yield: 60,
               showDelete: this.widget.showDelete,
-              onDelete: () => onDelete(items.length),
+              onDelete: () => deleteCrop(cropJson.name),
             );
           }).toList();
 
@@ -78,29 +78,33 @@ class CropsState extends State<CropsWidget> {
               child: const AddCropItem(),
             ),
           );
-
-          print(items.toString());
         });
       }
     } catch (e) {
-      print(e.toString());
       throw Exception('Failed to load crop');
     }
   }
 
-  void addCrop(String name) {
-    setState(() {
-      items.insert(
-        items.length - 1,
-        CropItem(
-          index: items.length,
-          name: name,
-          yield: 60,
-          showDelete: widget.showDelete,
-          onDelete: () => onDelete(items.length),
-        ),
+  Future<void> addCrop(String name) async {
+    const url = 'http://10.0.2.2:3000/crops';
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, Object>{
+          'name': 'John Doe',
+          'crops': [name],
+        }),
       );
-    });
+
+      if (response.statusCode == 200) {
+        fetchCrops();
+      }
+    } catch (e) {
+      throw Exception('Failed to add crop');
+    }
   }
 
   void showAddCropDialog() {
@@ -135,10 +139,26 @@ class CropsState extends State<CropsWidget> {
     );
   }
 
-  void onDelete(int index) {
-    setState(() {
-      items.removeAt(index);
-    });
+  Future<void> deleteCrop(String name) async {
+    const url = 'http://10.0.2.2:3000/crops';
+    try {
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, Object>{
+          'name': 'John Doe',
+          'crops': [name],
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        fetchCrops();
+      }
+    } catch (e) {
+      throw Exception('Failed to add crop');
+    }
   }
 
   @override
