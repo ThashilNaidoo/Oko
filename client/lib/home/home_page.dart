@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:client/home/crops_widget.dart';
 import 'package:client/home/ellipse_painter.dart';
@@ -7,7 +5,6 @@ import 'package:client/home/news_widget.dart';
 import 'package:client/home/pests_widget.dart';
 import 'package:client/home/weather_widget.dart';
 import 'package:tuple/tuple.dart';
-import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -56,24 +53,24 @@ class HomePageState extends State<HomePage> {
         backgroundColor: const Color(0xFFF5FAF8),
         body: Stack(
           children: [
-            SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
+            const SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
               child: Padding(
-                padding: const EdgeInsets.only(left: padding, right: padding, top: 150),
+                padding: EdgeInsets.only(left: padding, right: padding, top: 150),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    WeatherWidget(screenWidth: screenWidth),
-                    const SizedBox(height: 30),
+                    WeatherWidget(),
+                    SizedBox(height: 30),
                     CropsWidget(),
-                    const SizedBox(height: 10),
-                    const NewsWidget(items: news),
-                    const SizedBox(height: 30),
-                    const PestWidget(
+                    SizedBox(height: 10),
+                    NewsWidget(items: news),
+                    SizedBox(height: 30),
+                    PestWidget(
                       name: 'Rodents',
                       description: 'High alert for rodents in the area. Use  pesticide solution on your crops immediately to prevent possible loss.',
                     ),
-                    const SizedBox(height: 30)
+                    SizedBox(height: 30)
                   ],
                 ),
               ),

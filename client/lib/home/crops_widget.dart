@@ -52,6 +52,7 @@ class CropsState extends State<CropsWidget> {
         List<dynamic> body = jsonDecode(response.body);
         List<Crop> cropsJson = body.map((dynamic item) {
           if (item is Map<String, dynamic>) {
+            print(item);
             return Crop.fromJson(item);
           } else {
             throw const FormatException('Invalid data format');

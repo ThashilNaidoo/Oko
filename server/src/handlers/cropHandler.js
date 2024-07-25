@@ -8,7 +8,9 @@ const getCrops = async (req, res) => {
   try{
     const query = { name: req.query['name'] };
 
+    console.log(query);
     await client.connect();
+    console.log('E');
 
     const userCollection = client.db('oko-db').collection('Users');
 
