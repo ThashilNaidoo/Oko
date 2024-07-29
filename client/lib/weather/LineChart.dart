@@ -2,12 +2,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class LineChartSample extends StatefulWidget {
-  LineChartSample({
+  const LineChartSample({
     super.key,
     required this.data,
   });
 
-  List<double> data;
+  final List<double> data;
 
   @override
   State<LineChartSample> createState() => _LineChartSample2State();

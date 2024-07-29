@@ -1,47 +1,55 @@
-import 'package:client/pests/pests_page.dart';
+import 'package:client/pests/pest_details_page.dart';
 import 'package:flutter/material.dart';
-import 'package:client/home/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class PestWidget extends StatelessWidget {
-  const PestWidget({
+class PestItem extends StatefulWidget {
+  const PestItem({
     super.key,
     required this.name,
-    required this.description,
+    required this.threat,
   });
 
   final String name;
-  final String description;
+  final double threat;
+
+  @override
+  PestItemState createState() => PestItemState();
+}
+
+class PestItemState extends State<PestItem> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => {
+      onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const PestsPage(),
+            builder: (context) => PestDetailsPage(
+              name: widget.name,
+              threat: widget.threat,
+            ),
           ),
-        )
+        );
       },
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeading(
-            heading: 'Pests',
-          ),
-          const SizedBox(height: 10),
           Container(
-            height: 175,
+            height: 130,
+            width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color.fromARGB(255, 175, 95, 41), Color.fromARGB(255, 255, 230, 161)],
+                colors: [Color.fromARGB(255, 41, 99, 175), Color.fromARGB(255, 161, 210, 255)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15.0),
-                topRight: Radius.circular(15.0),
+                topLeft: Radius.circular(3.0),
+                topRight: Radius.circular(3.0),
               ),
               boxShadow: [
                 BoxShadow(
@@ -54,12 +62,13 @@ class PestWidget extends StatelessWidget {
             ),
           ),
           Container(
-            height: 80,
+            height: 60,
+            width: double.infinity,
             decoration: const BoxDecoration(
               color: Color(0xFFF2F2F2),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(15.0),
-                bottomRight: Radius.circular(15.0),
+                bottomLeft: Radius.circular(3.0),
+                bottomRight: Radius.circular(3.0),
               ),
               boxShadow: [
                 BoxShadow(
@@ -71,22 +80,23 @@ class PestWidget extends StatelessWidget {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(left: 15, top: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
-                    style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF333333)),
-                  ),
-                  Text(
-                    description,
-                    style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF999999)),
+                    widget.name,
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF333333),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
+          const SizedBox(height: 50),
         ],
       ),
     );

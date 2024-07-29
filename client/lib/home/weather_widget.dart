@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:client/home/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:tuple/tuple.dart';
 
 class WeatherWidget extends StatelessWidget {
   const WeatherWidget({
@@ -40,23 +39,23 @@ class WeatherWidget extends StatelessWidget {
       'overcast': [Color(0xFF434343), Color(0xFF252525)],
     };
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SectionHeading(
-          heading: 'Weather',
-        ),
-        const SizedBox(height: 10),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const WeatherPage(),
-              ),
-            );
-          },
-          child: Container(
+    return GestureDetector(
+      onTap: () => {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const WeatherPage(),
+          ),
+        )
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeading(
+            heading: 'Weather',
+          ),
+          const SizedBox(height: 10),
+          Container(
             height: 190,
             width: double.infinity,
             padding: const EdgeInsets.only(left: 25, right: 25, top: 15),
@@ -120,8 +119,8 @@ class WeatherWidget extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
