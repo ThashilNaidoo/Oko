@@ -1,3 +1,4 @@
+import 'package:client/utils/oko_button.dart';
 import 'package:flutter/material.dart';
 import 'package:client/home/crops_widget.dart';
 import 'package:client/home/ellipse_painter.dart';
@@ -89,6 +90,7 @@ class HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            const OkoButton(),
           ],
         ),
       ),
