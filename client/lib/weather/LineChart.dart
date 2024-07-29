@@ -1,17 +1,22 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-class LineChartSample2 extends StatefulWidget {
-  const LineChartSample2({super.key});
+class LineChartSample extends StatefulWidget {
+  LineChartSample({
+    super.key,
+    required this.data,
+  });
+
+  List<double> data;
 
   @override
-  State<LineChartSample2> createState() => _LineChartSample2State();
+  State<LineChartSample> createState() => _LineChartSample2State();
 }
 
-class _LineChartSample2State extends State<LineChartSample2> {
+class _LineChartSample2State extends State<LineChartSample> {
   List<Color> gradientColors = [
-    Colors.cyan,
-    Colors.blue,
+    const Color(0xFFF2F2F2),
+    const Color(0xFFF2F2F2),
   ];
 
   bool showAvg = false;
@@ -30,25 +35,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
               bottom: 12,
             ),
             child: LineChart(
-              showAvg ? avgData() : mainData(),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 60,
-          height: 34,
-          child: TextButton(
-            onPressed: () {
-              setState(() {
-                showAvg = !showAvg;
-              });
-            },
-            child: Text(
-              'avg',
-              style: TextStyle(
-                fontSize: 12,
-                color: showAvg ? Colors.white.withOpacity(0.5) : Colors.white,
-              ),
+              mainData(),
             ),
           ),
         ),
@@ -59,84 +46,26 @@ class _LineChartSample2State extends State<LineChartSample2> {
   Widget bottomTitleWidgets(double value, TitleMeta meta) {
     const style = TextStyle(
       fontWeight: FontWeight.bold,
-      fontSize: 8,
+      fontSize: 10,
+      color: Color(0xFFFAFAFA),
     );
+
     Widget text;
     switch (value.toInt()) {
       case 0:
-        text = const RotatedBox(quarterTurns: 3, child: Text('00:00', style: style));
-        break;
-      case 1:
-        text = const RotatedBox(quarterTurns: 3, child: Text('01:00', style: style));
-        break;
-      case 2:
-        text = const RotatedBox(quarterTurns: 3, child: Text('02:00', style: style));
-        break;
-      case 3:
-        text = const RotatedBox(quarterTurns: 3, child: Text('03:00', style: style));
-        break;
-      case 4:
-        text = const RotatedBox(quarterTurns: 3, child: Text('04:00', style: style));
-        break;
-      case 5:
-        text = const RotatedBox(quarterTurns: 3, child: Text('05:00', style: style));
+        text = const Text('00', style: style);
         break;
       case 6:
-        text = const RotatedBox(quarterTurns: 3, child: Text('06:00', style: style));
-        break;
-      case 7:
-        text = const RotatedBox(quarterTurns: 3, child: Text('07:00', style: style));
-        break;
-      case 8:
-        text = const RotatedBox(quarterTurns: 3, child: Text('08:00', style: style));
-        break;
-      case 9:
-        text = const RotatedBox(quarterTurns: 3, child: Text('09:00', style: style));
-        break;
-      case 10:
-        text = const RotatedBox(quarterTurns: 3, child: Text('10:00', style: style));
-        break;
-      case 11:
-        text = const RotatedBox(quarterTurns: 3, child: Text('11:00', style: style));
+        text = const Text('06', style: style);
         break;
       case 12:
-        text = const RotatedBox(quarterTurns: 3, child: Text('12:00', style: style));
-        break;
-      case 13:
-        text = const RotatedBox(quarterTurns: 3, child: Text('13:00', style: style));
-        break;
-      case 14:
-        text = const RotatedBox(quarterTurns: 3, child: Text('14:00', style: style));
-        break;
-      case 15:
-        text = const RotatedBox(quarterTurns: 3, child: Text('15:00', style: style));
-        break;
-      case 16:
-        text = const RotatedBox(quarterTurns: 3, child: Text('16:00', style: style));
-        break;
-      case 17:
-        text = const RotatedBox(quarterTurns: 3, child: Text('17:00', style: style));
+        text = const Text('12', style: style);
         break;
       case 18:
-        text = const RotatedBox(quarterTurns: 3, child: Text('18:00', style: style));
-        break;
-      case 19:
-        text = const RotatedBox(quarterTurns: 3, child: Text('19:00', style: style));
-        break;
-      case 20:
-        text = const RotatedBox(quarterTurns: 3, child: Text('20:00', style: style));
-        break;
-      case 21:
-        text = const RotatedBox(quarterTurns: 3, child: Text('21:00', style: style));
-        break;
-      case 22:
-        text = const RotatedBox(quarterTurns: 3, child: Text('22:00', style: style));
-        break;
-      case 23:
-        text = const RotatedBox(quarterTurns: 3, child: Text('23:00', style: style));
+        text = const Text('18', style: style);
         break;
       default:
-        text = const Text('Invalid time', style: style);
+        text = const Text('', style: style);
         break;
     }
 
@@ -149,18 +78,31 @@ class _LineChartSample2State extends State<LineChartSample2> {
   Widget leftTitleWidgets(double value, TitleMeta meta) {
     const style = TextStyle(
       fontWeight: FontWeight.bold,
-      fontSize: 15,
+      fontSize: 10,
+      color: Color(0xFFFAFAFA),
     );
     String text;
     switch (value.toInt()) {
-      case 1:
-        text = '10K';
+      case 0:
+        text = '0';
         break;
-      case 3:
-        text = '30k';
+      case 6:
+        text = '6';
         break;
-      case 5:
-        text = '50k';
+      case 12:
+        text = '12';
+        break;
+      case 18:
+        text = '18';
+        break;
+      case 24:
+        text = '24';
+        break;
+      case 30:
+        text = '30';
+        break;
+      case 36:
+        text = '36';
         break;
       default:
         return Container();
@@ -174,17 +116,17 @@ class _LineChartSample2State extends State<LineChartSample2> {
       gridData: FlGridData(
         show: true,
         drawVerticalLine: true,
-        horizontalInterval: 1,
-        verticalInterval: 1,
+        horizontalInterval: 6,
+        verticalInterval: 6,
         getDrawingHorizontalLine: (value) {
           return const FlLine(
-            color: Colors.white,
+            color: Color(0xFFF2F2F2),
             strokeWidth: 1,
           );
         },
         getDrawingVerticalLine: (value) {
           return const FlLine(
-            color: Colors.white,
+            color: Color(0xFFF2F2F2),
             strokeWidth: 1,
           );
         },
@@ -210,29 +152,21 @@ class _LineChartSample2State extends State<LineChartSample2> {
             showTitles: true,
             interval: 1,
             getTitlesWidget: leftTitleWidgets,
-            reservedSize: 42,
+            reservedSize: 24,
           ),
         ),
       ),
       borderData: FlBorderData(
         show: true,
-        border: Border.all(color: const Color(0xff37434d)),
+        border: Border.all(color: const Color(0xFFF2F2F2)),
       ),
       minX: 0,
-      maxX: 11,
+      maxX: 23,
       minY: 0,
-      maxY: 6,
+      maxY: 36,
       lineBarsData: [
         LineChartBarData(
-          spots: const [
-            FlSpot(0, 3),
-            FlSpot(2.6, 2),
-            FlSpot(4.9, 5),
-            FlSpot(6.8, 3.1),
-            FlSpot(8, 4),
-            FlSpot(9.5, 3),
-            FlSpot(11, 4),
-          ],
+          spots: widget.data.asMap().entries.map((entry) => FlSpot(entry.key.toDouble(), entry.value)).toList(),
           isCurved: true,
           gradient: LinearGradient(
             colors: gradientColors,
@@ -246,97 +180,6 @@ class _LineChartSample2State extends State<LineChartSample2> {
             show: true,
             gradient: LinearGradient(
               colors: gradientColors.map((color) => color.withOpacity(0.3)).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  LineChartData avgData() {
-    return LineChartData(
-      lineTouchData: const LineTouchData(enabled: false),
-      gridData: FlGridData(
-        show: true,
-        drawHorizontalLine: true,
-        verticalInterval: 1,
-        horizontalInterval: 1,
-        getDrawingVerticalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-        getDrawingHorizontalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-      ),
-      titlesData: FlTitlesData(
-        show: true,
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 30,
-            getTitlesWidget: bottomTitleWidgets,
-            interval: 1,
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: leftTitleWidgets,
-            reservedSize: 42,
-            interval: 1,
-          ),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
-      borderData: FlBorderData(
-        show: true,
-        border: Border.all(color: const Color(0xff37434d)),
-      ),
-      minX: 0,
-      maxX: 11,
-      minY: 0,
-      maxY: 6,
-      lineBarsData: [
-        LineChartBarData(
-          spots: const [
-            FlSpot(0, 3.44),
-            FlSpot(2.6, 3.44),
-            FlSpot(4.9, 3.44),
-            FlSpot(6.8, 3.44),
-            FlSpot(8, 3.44),
-            FlSpot(9.5, 3.44),
-            FlSpot(11, 3.44),
-          ],
-          isCurved: true,
-          gradient: LinearGradient(
-            colors: [
-              ColorTween(begin: gradientColors[0], end: gradientColors[1]).lerp(0.2)!,
-              ColorTween(begin: gradientColors[0], end: gradientColors[1]).lerp(0.2)!,
-            ],
-          ),
-          barWidth: 5,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(
-            show: false,
-          ),
-          belowBarData: BarAreaData(
-            show: true,
-            gradient: LinearGradient(
-              colors: [
-                ColorTween(begin: gradientColors[0], end: gradientColors[1]).lerp(0.2)!.withOpacity(0.1),
-                ColorTween(begin: gradientColors[0], end: gradientColors[1]).lerp(0.2)!.withOpacity(0.1),
-              ],
             ),
           ),
         ),

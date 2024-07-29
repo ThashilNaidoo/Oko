@@ -111,13 +111,36 @@ class WeatherPageState extends State<WeatherPage> {
       'overcast': [Color(0xFF434343), Color(0xFF252525)],
     };
 
+    Color dark = gradientsDay['clear']!.first;
+    Color light = gradientsDay['clear']!.last;
+    DateTime now = DateTime.now();
+    if (weather.condition.toLowerCase().contains("clear") && now.hour < 18) {
+      dark = gradientsDay['clear']!.first;
+      light = gradientsDay['clear']!.last;
+    } else if (weather.condition.toLowerCase().contains("cloudy") && now.hour < 18) {
+      dark = gradientsDay['cloudy']!.first;
+      light = gradientsDay['cloudy']!.last;
+    } else if (weather.condition.toLowerCase().contains("overcast") && now.hour < 18) {
+      dark = gradientsDay['overcast']!.first;
+      light = gradientsDay['overcast']!.last;
+    } else if (weather.condition.toLowerCase().contains("clear") && now.hour >= 18) {
+      dark = gradientsNight['clear']!.first;
+      light = gradientsNight['clear']!.last;
+    } else if (weather.condition.toLowerCase().contains("cloudy") && now.hour >= 18) {
+      dark = gradientsNight['cloudy']!.first;
+      light = gradientsNight['cloudy']!.last;
+    } else if (weather.condition.toLowerCase().contains("overcast") && now.hour >= 18) {
+      dark = gradientsNight['overcast']!.first;
+      light = gradientsNight['overcast']!.last;
+    }
+
     return Scaffold(
       body: Stack(
         children: [
           Container(
             decoration: BoxDecoration(
                 gradient: LinearGradient(
-              colors: gradientsDay['clear']!,
+              colors: [dark, light],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             )),
@@ -176,22 +199,22 @@ class WeatherPageState extends State<WeatherPage> {
                     ],
                   ),
                 ),
-                Forecast(forecast: weather.sevenDay, color: gradientsDay['clear']!.first.withOpacity(0.5)),
-                TemperatureGraph(color: gradientsDay['clear']!.first.withOpacity(0.5), temperature: weather.temperature),
+                Forecast(forecast: weather.sevenDay, color: dark.withOpacity(0.5)),
+                TemperatureGraph(color: dark.withOpacity(0.5), temperature: weather.temperature),
                 WeatherItem(
-                  color: gradientsDay['clear']!.first.withOpacity(0.5),
+                  color: dark.withOpacity(0.5),
                   heading: 'Wind',
                   mainText: '${weather.windSpeed.toStringAsFixed(0)} km/h wind in a ${weather.windDirection} direction',
                   description: 'Today is a good day for wind',
                 ),
                 WeatherItem(
-                  color: gradientsDay['clear']!.first.withOpacity(0.5),
+                  color: dark.withOpacity(0.5),
                   heading: 'Precipitation',
                   mainText: '${weather.precipitation.toStringAsFixed(0)} mm with a ${weather.chanceOfRain.toStringAsFixed(0)}% chance of rain',
                   description: 'Today is a good day for rain',
                 ),
                 WeatherItem(
-                  color: gradientsDay['clear']!.first.withOpacity(0.5),
+                  color: dark.withOpacity(0.5),
                   heading: 'Humidity',
                   mainText: '${weather.humidity.toStringAsFixed(0)}% with a feels like temperature of ${weather.feelsLike.toStringAsFixed(0)}$units',
                   description: 'Today is a good day for pests',
@@ -446,7 +469,9 @@ class TemperatureGraph extends StatelessWidget {
                   color: const Color(0xFFFAFAFA),
                 ),
               ),
-              LineChartSample2(),
+              LineChartSample(
+                data: temperature,
+              ),
             ],
           ),
         ),

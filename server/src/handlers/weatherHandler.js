@@ -43,7 +43,7 @@ const getWeather = async (req, res) => {
       "currTemp": 14.7,
       "maxTemp": 19.4,
       "minTemp": 10.4,
-      "condition": "Sunny",
+      "condition": "Overcast",
       "conditionSentence": "Describe condition using Gemini",
       "sevenDay": [
         [
