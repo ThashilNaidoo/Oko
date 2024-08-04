@@ -1,5 +1,5 @@
 import 'package:client/home/home_page.dart';
-import 'package:client/pests/ellipse_painter.dart';
+import 'package:client/utils/ellipse_painter.dart';
 import 'package:client/pests/pest_item.dart';
 import 'package:client/utils/back_widget.dart';
 import 'package:flutter/material.dart';
