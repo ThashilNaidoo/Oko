@@ -23,7 +23,7 @@ class ChatPageState extends State<ChatPage> {
   List<Widget> messagesReceived = [
     const ChatBubble(
       message:
-          'Hello I\'m OKO. Your personal farming assitant. I can help you with any questions you have about farming. How can I be of service today?',
+          'Hello, I\'m OKO. Your personal farming assistant. I can help you with any questions you have about farming. How can I be of service today?',
       axisAlignment: MainAxisAlignment.start,
       color: Color(0xFFDAF2E7),
       textAlign: TextAlign.start,

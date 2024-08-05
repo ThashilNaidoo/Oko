@@ -1,4 +1,3 @@
-const client = require('../config/dbClient');
 const { newsAPI } = require('../config/config')
 
 const capitalizeFirstCharacter = (text) => {

@@ -1,16 +1,17 @@
-const client = require('../config/dbClient');
+const { MongoClient } = require('mongodb');
+const { mongoURI, dbConfig } = require('../config/config');
 
 const capitalizeFirstCharacter = (text) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 const getCrops = async (req, res) => {
-  try{
-    const query = { name: req.query['name'] };
+  const client = new MongoClient(mongoURI, dbConfig);
 
-    console.log(query);
+  try{  
     await client.connect();
-    console.log('E');
+
+    const query = { name: req.query['name'] };
 
     const userCollection = client.db('oko-db').collection('Users');
 

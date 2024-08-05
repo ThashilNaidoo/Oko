@@ -3,29 +3,72 @@ import 'package:flutter/material.dart';
 import 'package:client/home/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class WeatherWidget extends StatelessWidget {
+class Weather {
+  final double currTemp;
+  final double maxTemp;
+  final double minTemp;
+  final String condition;
+  final String conditionDescription;
+
+  const Weather({this.currTemp = 0, this.maxTemp = 0, this.minTemp = 0, this.condition = '', this.conditionDescription = ''});
+
+  factory Weather.fromJson(Map<String, dynamic> json) {
+    return Weather(
+        currTemp: (json['currTemp'] as num).toDouble(),
+        maxTemp: (json['maxTemp'] as num).toDouble(),
+        minTemp: (json['minTemp'] as num).toDouble(),
+        condition: json['condition'] as String,
+        conditionDescription: json['conditionDescription'] as String);
+  }
+}
+
+class WeatherWidget extends StatefulWidget {
   const WeatherWidget({
     super.key,
   });
 
   @override
+  WeatherState createState() => WeatherState();
+}
+
+class WeatherState extends State<WeatherWidget> {
+  Weather weather = const Weather();
+
+  Future<void> fetchWeather() async {
+    DateTime now = DateTime.now();
+    int timezone = now.timeZoneOffset.inHours;
+    int timestamp = now.millisecondsSinceEpoch;
+    String url = 'http://10.0.2.2:3000/weather?location=Johannesburg&name=John%20Doe&date=$timestamp&timezone=$timezone';
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> body = jsonDecode(response.body);
+        Weather weather = Weather.fromJson(body);
+
+        setState(() {
+          this.weather = weather;
+        });
+      }
+    } catch (e) {
+      throw Exception('Failed to load weather');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWeather();
+  }
+
+  @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
-    DateTime sunset = DateTime(now.year, now.month, now.day, 17, 30);
-    bool day = true;
-    if (now.isAfter(sunset)) {
-      day = true;
-    }
     String formattedDate = DateFormat('dd MMMM yyyy').format(now);
-
     String units = '°C';
-    int high = 26;
-    int low = 13;
-
-    String description = 'Sunny conditions will subside by 4pm. This is a perfect time for watering the crops.';
-
-    String weather = 'clear';
 
     const gradientsDay = {
       'clear': [Color(0xFF296FAF), Color(0xFFA1E3FF)],
@@ -38,6 +81,28 @@ class WeatherWidget extends StatelessWidget {
       'cloudy': [Color(0xFF434343), Color(0xFF07081C)],
       'overcast': [Color(0xFF434343), Color(0xFF252525)],
     };
+
+    Color dark = gradientsDay['clear']!.first;
+    Color light = gradientsDay['clear']!.last;
+    if (weather.condition.toLowerCase().contains("clear") && now.hour < 18) {
+      dark = gradientsDay['clear']!.first;
+      light = gradientsDay['clear']!.last;
+    } else if (weather.condition.toLowerCase().contains("cloudy") && now.hour < 18) {
+      dark = gradientsDay['cloudy']!.first;
+      light = gradientsDay['cloudy']!.last;
+    } else if (weather.condition.toLowerCase().contains("overcast") && now.hour < 18) {
+      dark = gradientsDay['overcast']!.first;
+      light = gradientsDay['overcast']!.last;
+    } else if (weather.condition.toLowerCase().contains("clear") && now.hour >= 18) {
+      dark = gradientsNight['clear']!.first;
+      light = gradientsNight['clear']!.last;
+    } else if (weather.condition.toLowerCase().contains("cloudy") && now.hour >= 18) {
+      dark = gradientsNight['cloudy']!.first;
+      light = gradientsNight['cloudy']!.last;
+    } else if (weather.condition.toLowerCase().contains("overcast") && now.hour >= 18) {
+      dark = gradientsNight['overcast']!.first;
+      light = gradientsNight['overcast']!.last;
+    }
 
     return GestureDetector(
       onTap: () => {
@@ -61,7 +126,7 @@ class WeatherWidget extends StatelessWidget {
             padding: const EdgeInsets.only(left: 25, right: 25, top: 15),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: day ? gradientsDay[weather]! : gradientsNight[weather]!,
+                colors: [dark, light],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -72,7 +137,7 @@ class WeatherWidget extends StatelessWidget {
                   spreadRadius: 0,
                   blurRadius: 4,
                   offset: Offset(0, 4),
-                )
+                ),
               ],
             ),
             child: Column(
@@ -87,16 +152,30 @@ class WeatherWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  '23$units',
-                  style: GoogleFonts.poppins(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFFFAFAFA),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${weather.currTemp.toStringAsFixed(0)}$units',
+                        style: GoogleFonts.poppins(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFFAFAFA),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      weather.condition,
+                      style: GoogleFonts.poppins(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFFAFAFA),
+                      ),
+                    ),
+                  ],
                 ),
                 Text(
-                  'H:$high$units L:$low$units',
+                  'H:${weather.maxTemp.toStringAsFixed(0)}$units L:${weather.minTemp.toStringAsFixed(0)}$units',
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -109,7 +188,7 @@ class WeatherWidget extends StatelessWidget {
                   thickness: 1.0,
                 ),
                 Text(
-                  description,
+                  weather.conditionDescription,
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,

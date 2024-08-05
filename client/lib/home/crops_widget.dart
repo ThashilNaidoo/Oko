@@ -47,6 +47,7 @@ class CropsState extends State<CropsWidget> {
     const url = 'http://10.0.2.2:3000/crops?name=John%20Doe';
     try {
       final response = await http.get(Uri.parse(url));
+      print(response.body);
 
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
@@ -82,6 +83,8 @@ class CropsState extends State<CropsWidget> {
         });
       }
     } catch (e) {
+      print('Did not get crops');
+
       throw Exception('Failed to load crop');
     }
   }

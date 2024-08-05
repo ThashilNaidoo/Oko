@@ -11,34 +11,40 @@ class Weather {
   final double maxTemp;
   final double minTemp;
   final String condition;
-  final String conditionSentence;
+  final String conditionDescription;
 
   final List<List<double>> sevenDay;
   final List<double> temperature;
 
   final double windSpeed;
   final String windDirection;
+  final String windDescription;
 
   final double precipitation;
   final double chanceOfRain;
+  final String precipitationDescription;
 
   final double humidity;
   final double feelsLike;
+  final String humidityDescription;
 
   const Weather({
     this.currTemp = 0,
     this.maxTemp = 0,
     this.minTemp = 0,
     this.condition = '',
-    this.conditionSentence = '',
+    this.conditionDescription = '',
     this.sevenDay = const [],
     this.temperature = const [],
     this.windSpeed = 0,
     this.windDirection = '',
+    this.windDescription = '',
     this.precipitation = 0,
     this.chanceOfRain = 0,
+    this.precipitationDescription = '',
     this.humidity = 0,
     this.feelsLike = 0,
+    this.humidityDescription = '',
   });
 
   factory Weather.fromJson(Map<String, dynamic> json) {
@@ -47,15 +53,18 @@ class Weather {
       maxTemp: (json['maxTemp'] as num).toDouble(),
       minTemp: (json['minTemp'] as num).toDouble(),
       condition: json['condition'] as String,
-      conditionSentence: json['conditionSentence'] as String,
+      conditionDescription: json['conditionDescription'] as String,
       sevenDay: (json['sevenDay'] as List).map((e) => (e as List).map((e) => (e as num).toDouble()).toList()).toList(),
       temperature: (json['temperature'] as List).map((e) => (e as num).toDouble()).toList(),
       windSpeed: (json['windSpeed'] as num).toDouble(),
       windDirection: json['windDirection'] as String,
+      windDescription: json['windDescription'] as String,
       precipitation: (json['precipitation'] as num).toDouble(),
       chanceOfRain: (json['chanceOfRain'] as num).toDouble(),
+      precipitationDescription: json['precipitationDescription'] as String,
       humidity: (json['humidity'] as num).toDouble(),
       feelsLike: (json['feelsLike'] as num).toDouble(),
+      humidityDescription: json['humidityDescription'] as String,
     );
   }
 }
@@ -71,7 +80,10 @@ class WeatherPageState extends State<WeatherPage> {
   Weather weather = const Weather();
 
   Future<void> fetchWeather() async {
-    const url = 'http://10.0.2.2:3000/weather?location=Johannesburg';
+    DateTime now = DateTime.now();
+    int timezone = now.timeZoneOffset.inHours;
+    int timestamp = now.millisecondsSinceEpoch;
+    String url = 'http://10.0.2.2:3000/weather?location=Johannesburg&name=John%20Doe&date=$timestamp&timezone=$timezone';
     try {
       final response = await http.get(Uri.parse(url));
 
@@ -139,11 +151,12 @@ class WeatherPageState extends State<WeatherPage> {
         children: [
           Container(
             decoration: BoxDecoration(
-                gradient: LinearGradient(
-              colors: [dark, light],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )),
+              gradient: LinearGradient(
+                colors: [dark, light],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
           ),
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -188,7 +201,7 @@ class WeatherPageState extends State<WeatherPage> {
                         ),
                       ),
                       Text(
-                        weather.conditionSentence,
+                        weather.conditionDescription,
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.w400,
@@ -205,19 +218,19 @@ class WeatherPageState extends State<WeatherPage> {
                   color: dark.withOpacity(0.5),
                   heading: 'Wind',
                   mainText: '${weather.windSpeed.toStringAsFixed(0)} km/h wind in a ${weather.windDirection} direction',
-                  description: 'Today is a good day for wind',
+                  description: weather.windDescription,
                 ),
                 WeatherItem(
                   color: dark.withOpacity(0.5),
                   heading: 'Precipitation',
                   mainText: '${weather.precipitation.toStringAsFixed(0)} mm with a ${weather.chanceOfRain.toStringAsFixed(0)}% chance of rain',
-                  description: 'Today is a good day for rain',
+                  description: weather.precipitationDescription,
                 ),
                 WeatherItem(
                   color: dark.withOpacity(0.5),
                   heading: 'Humidity',
                   mainText: '${weather.humidity.toStringAsFixed(0)}% with a feels like temperature of ${weather.feelsLike.toStringAsFixed(0)}$units',
-                  description: 'Today is a good day for pests',
+                  description: weather.humidityDescription,
                 ),
               ],
             ),
@@ -319,81 +332,84 @@ class Forecast extends StatelessWidget {
       subsequentDays.add(daysOfWeek[index]);
     }
 
-    List<Widget> dayWidgets = subsequentDays
-        .asMap()
-        .entries
-        .map(
-          (entry) => Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      entry.value,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFFFAFAFA),
+    List<Widget> dayWidgets = [];
+    if (forecast.isNotEmpty) {
+      dayWidgets = subsequentDays
+          .asMap()
+          .entries
+          .map(
+            (entry) => Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entry.value,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFFAFAFA),
+                        ),
                       ),
                     ),
-                  ),
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            forecast[entry.key][1].toStringAsFixed(0),
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFFFAFAFA),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              forecast[entry.key][1].toStringAsFixed(0),
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xFFFAFAFA),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        height: 8,
-                        width: 130,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF73F7FF), Color(0xFFFF7A00)],
-                            stops: [0.0, 1.0],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 20,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            forecast[entry.key][0].toStringAsFixed(0),
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFFFAFAFA),
+                        const SizedBox(width: 8),
+                        Container(
+                          height: 8,
+                          width: 130,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF73F7FF), Color(0xFFFF7A00)],
+                              stops: [0.0, 1.0],
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              if (entry.key != 6)
-                const Divider(
-                  color: Color(0xFAFAFAFA),
-                  thickness: 1.0,
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 20,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              forecast[entry.key][0].toStringAsFixed(0),
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xFFFAFAFA),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-            ],
-          ),
-        )
-        .toList();
+                if (entry.key != 6)
+                  const Divider(
+                    color: Color(0xFAFAFAFA),
+                    thickness: 1.0,
+                  ),
+              ],
+            ),
+          )
+          .toList();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
