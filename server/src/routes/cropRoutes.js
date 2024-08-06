@@ -3,7 +3,8 @@ const router = express.Router();
 const cropHandler = require('../handlers/cropHandler');
 
 router.get('/', cropHandler.getCrops);
-router.post('/', cropHandler.addCrop);
-router.delete('/', cropHandler.removeCrop);
+router.get('/:name', cropHandler.getCropDetails);
+router.post('/:name', cropHandler.addCrop);
+router.delete('/:name', cropHandler.removeCrop);
 
 module.exports = router;

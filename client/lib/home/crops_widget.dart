@@ -90,7 +90,7 @@ class CropsState extends State<CropsWidget> {
   }
 
   Future<void> addCrop(String name) async {
-    const url = 'http://10.0.2.2:3000/crops';
+    String url = 'http://10.0.2.2:3000/crops/$name';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -99,7 +99,6 @@ class CropsState extends State<CropsWidget> {
         },
         body: jsonEncode(<String, Object>{
           'name': 'John Doe',
-          'crops': [name],
         }),
       );
 
@@ -144,7 +143,7 @@ class CropsState extends State<CropsWidget> {
   }
 
   Future<void> deleteCrop(String name) async {
-    const url = 'http://10.0.2.2:3000/crops';
+    String url = 'http://10.0.2.2:3000/crops/$name';
     try {
       final response = await http.delete(
         Uri.parse(url),
@@ -153,7 +152,6 @@ class CropsState extends State<CropsWidget> {
         },
         body: jsonEncode(<String, Object>{
           'name': 'John Doe',
-          'crops': [name],
         }),
       );
 

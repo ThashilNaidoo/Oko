@@ -80,10 +80,7 @@ class WeatherPageState extends State<WeatherPage> {
   Weather weather = const Weather();
 
   Future<void> fetchWeather() async {
-    DateTime now = DateTime.now();
-    int timezone = now.timeZoneOffset.inHours;
-    int timestamp = now.millisecondsSinceEpoch;
-    String url = 'http://10.0.2.2:3000/weather?location=Johannesburg&name=John%20Doe&date=$timestamp&timezone=$timezone';
+    String url = 'http://10.0.2.2:3000/weather?name=John%20Doe';
     try {
       final response = await http.get(Uri.parse(url));
 

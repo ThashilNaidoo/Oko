@@ -2,6 +2,7 @@ const { weatherAPI, geminiAPI, geminiPrompt, mongoURI, dbConfig } = require('../
 const { clear, cloudy } = require('../constants/weatherConditions');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { MongoClient } = require('mongodb');
+const moment = require('moment-timezone');
 
 const capitalizeFirstCharacter = (text) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
@@ -13,9 +14,7 @@ const getWeather = async (req, res) => {
   try{ 
     await client.connect();
 
-    const name = req.query['name'];
-    const currentTimestamp = req.query['date'];
-    const timezone = req.query['timezone'];
+    const name = req.query.name;
 
     const userCollection = client.db('oko-db').collection('Users');
     const query = { name: name };
@@ -27,14 +26,14 @@ const getWeather = async (req, res) => {
     }
 
     // Update the last time the weather was fetched
-    const startDate = new Date(Number(currentTimestamp));
-    startDate.setHours(0, 0, 0, 0);
-    const startOfDay = startDate.getTime();
-    const endOfDay =  startOfDay + 86399000;
+    const lastUpdatedLocal = moment().tz(user.weather.updatedAt, user.timezone);
+    const nowLocal = moment().tz(user.timezone);
+    const nowUTC = nowLocal.utc().format();
+    const startOfTodayLocal = nowLocal.clone().startOf('day');
     
     // Update weather info in mongodb
-    if(!(user.weather.updatedAt >= startOfDay && user.weather.updatedAt <= endOfDay)) {
-      const location = req.query['location'];
+    if(lastUpdatedLocal.isBefore(startOfTodayLocal)) {
+      const location = user.location;
       const url = `https://api.weatherapi.com/v1/forecast.json?q=${location}&days=7&key=${weatherAPI}`;
       
       let response = await fetch(url);
@@ -52,8 +51,6 @@ const getWeather = async (req, res) => {
       const temperature = hour.map((item) => 
         item.temp_c
       );
-    
-      const currentTime = new Date(Number(currentTimestamp)).getTime();
 
       // Map condition received to custom condition for the client
       let condition;
@@ -100,7 +97,7 @@ const getWeather = async (req, res) => {
         humidity: forecast[0].day.avghumidity,
         feelsLike: current.feelslike_c,
         humidityDescription: descriptionResponse[6],
-        updatedAt: currentTime
+        updatedAt: nowUTC
       }
 
       const update = { $set: { "weather": weather } };
@@ -111,14 +108,10 @@ const getWeather = async (req, res) => {
       res.status(200).json(weather);
     }
     else {
-      const currentTime = new Date(Number(currentTimestamp));
-      const hour = currentTime.getUTCHours() + Number(timezone);
-      
-      const query = { name: name };
-      const user = await userCollection.findOne(query);
+      const nowLocal = moment().tz(user.timezone);
 
       const weather = user.weather;
-      weather.currTemp = weather.temperature[hour];
+      weather.currTemp = weather.temperature[nowLocal.hour()];
 
       const update = { $set: { "weather": weather } };
       await userCollection.updateOne(query, update);
