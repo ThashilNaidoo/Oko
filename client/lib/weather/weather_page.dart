@@ -28,6 +28,8 @@ class Weather {
   final double feelsLike;
   final String humidityDescription;
 
+  final String location;
+
   const Weather({
     this.currTemp = 0,
     this.maxTemp = 0,
@@ -45,6 +47,7 @@ class Weather {
     this.humidity = 0,
     this.feelsLike = 0,
     this.humidityDescription = '',
+    this.location = '',
   });
 
   factory Weather.fromJson(Map<String, dynamic> json) {
@@ -65,6 +68,7 @@ class Weather {
       humidity: (json['humidity'] as num).toDouble(),
       feelsLike: (json['feelsLike'] as num).toDouble(),
       humidityDescription: json['humidityDescription'] as String,
+      location: json['location'] as String,
     );
   }
 }
@@ -166,7 +170,7 @@ class WeatherPageState extends State<WeatherPage> {
                     children: [
                       const SizedBox(height: 100),
                       Text(
-                        'Johannesburg',
+                        weather.location,
                         style: GoogleFonts.poppins(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,

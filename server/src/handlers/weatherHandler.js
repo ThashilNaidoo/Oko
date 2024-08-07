@@ -26,15 +26,14 @@ const getWeather = async (req, res) => {
     }
 
     // Update the last time the weather was fetched
-    const lastUpdatedLocal = moment().tz(user.weather.updatedAt, user.timezone);
-    const nowLocal = moment().tz(user.timezone);
+    const lastUpdatedLocal = user.weather.updatedAt ? moment.tz(user.weather.updatedAt, user.timezone) : null;
+    const nowLocal = moment.tz(user.timezone);
     const nowUTC = nowLocal.utc().format();
     const startOfTodayLocal = nowLocal.clone().startOf('day');
     
     // Update weather info in mongodb
-    if(lastUpdatedLocal.isBefore(startOfTodayLocal)) {
-      const location = user.location;
-      const url = `https://api.weatherapi.com/v1/forecast.json?q=${location}&days=7&key=${weatherAPI}`;
+    if(!lastUpdatedLocal || lastUpdatedLocal.isBefore(startOfTodayLocal)) {
+      const url = `https://api.weatherapi.com/v1/forecast.json?q=${user.location}&days=7&key=${weatherAPI}`;
       
       let response = await fetch(url);
       const data = await response.json();
@@ -67,36 +66,45 @@ const getWeather = async (req, res) => {
       const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: geminiPrompt });
 
       // Condition
-      let result = await model.generateContent(`Current temperature: ${current.temp_c}, condition: ${condition}, wind speed: ${current.wind_kph}, precipitation: ${forecast[0].day.totalprecip_mm}, humidity: ${forecast[0].day.avghumidity}
+      const result = await model.generateContent(`Current temperature: ${current.temp_c}, condition: ${condition}, wind speed: ${current.wind_kph}, precipitation: ${forecast[0].day.totalprecip_mm}, humidity: ${forecast[0].day.avghumidity}
         Describe the weather conditions in 1 sentence no more than 10 words.
         Describe the wind in relation to farming. 2 sentences. Make reference to spraying pesticides or anything else a farmer would want to know.
         Describe the rain in relation to farming. 2 sentences. Make reference to irrigation or anything else a farmer would want to know.
-        Describe the humidity in relation to farming. 2 sentences. Make reference to pests in the ${location} area or anything else a farmer would want to know.
-        All 4 of these should be seperated by new line characters.`);
-      response = await result.response;
-      const geminiResponse = await response.text();
-      const descriptionResponse = geminiResponse.split('\n');
+        Describe the humidity in relation to farming. 2 sentences. Make reference to pests in the ${user.location} area or anything else a farmer would want to know.
+        
+        Return as JSON with the following structure:
+        {
+          "condition": string,
+          "wind": string,
+          "rain": string,
+          "humidity": string
+        }
+        
+        Do not greet the user.
+      `);
 
-      console.log(geminiResponse);
-      console.log(descriptionResponse);
+      let generativeText = result.response.text();
+      generativeText = generativeText.substring(generativeText.indexOf('{'), generativeText.indexOf('}') + 1);
+      generativeText = JSON.parse(generativeText);
+      console.log(generativeText);
 
       const weather = {
         currTemp: current.temp_c,
         maxTemp: forecast[0].day.maxtemp_c,
         minTemp: forecast[0].day.mintemp_c,
         condition: capitalizeFirstCharacter(condition),
-        conditionDescription: descriptionResponse[0],
+        conditionDescription: generativeText.condition,
         sevenDay: sevenDay,
         temperature: temperature,
         windSpeed: current.wind_kph,
         windDirection: current.wind_dir,
-        windDescription: descriptionResponse[2],
+        windDescription: generativeText.wind,
         precipitation: forecast[0].day.totalprecip_mm,
         chanceOfRain: forecast[0].day.daily_chance_of_rain,
-        precipitationDescription: descriptionResponse[4],
+        precipitationDescription: generativeText.rain,
         humidity: forecast[0].day.avghumidity,
         feelsLike: current.feelslike_c,
-        humidityDescription: descriptionResponse[6],
+        humidityDescription: generativeText.humidity,
         updatedAt: nowUTC
       }
 
@@ -105,10 +113,10 @@ const getWeather = async (req, res) => {
 
       console.log(`Updated full weather for ${name}`);
 
-      res.status(200).json(weather);
+      res.status(200).json({...weather, location: user.location});
     }
     else {
-      const nowLocal = moment().tz(user.timezone);
+      const nowLocal = moment.tz(user.timezone);
 
       const weather = user.weather;
       weather.currTemp = weather.temperature[nowLocal.hour()];
@@ -118,7 +126,7 @@ const getWeather = async (req, res) => {
 
       console.log(`Updated weather for ${name}`);
 
-      res.status(200).json(weather);
+      res.status(200).json({...weather, location: user.location});
     }
   } catch(error) {
     res.status(500).json({message: error.message});

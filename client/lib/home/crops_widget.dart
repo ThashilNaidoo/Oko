@@ -6,19 +6,18 @@ import 'dart:convert';
 
 class Crop {
   final String name;
+  final double yield;
 
   const Crop({
     required this.name,
+    required this.yield,
   });
 
   factory Crop.fromJson(Map<String, dynamic> json) {
-    return switch (json) {
-      {
-        'name': String name,
-      } =>
-        Crop(name: name),
-      _ => throw const FormatException('Failed to load crop.'),
-    };
+    return Crop(
+      name: json['name'] as String,
+      yield: (json['yield'] as num).toDouble(),
+    );
   }
 }
 
@@ -47,13 +46,11 @@ class CropsState extends State<CropsWidget> {
     const url = 'http://10.0.2.2:3000/crops?name=John%20Doe';
     try {
       final response = await http.get(Uri.parse(url));
-      print(response.body);
 
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
         List<Crop> cropsJson = body.map((dynamic item) {
           if (item is Map<String, dynamic>) {
-            print(item);
             return Crop.fromJson(item);
           } else {
             throw const FormatException('Invalid data format');
@@ -65,8 +62,8 @@ class CropsState extends State<CropsWidget> {
             return CropItem(
               index: items.length,
               name: cropJson.name,
-              yield: 60,
-              showDelete: this.widget.showDelete,
+              yield: cropJson.yield,
+              showDelete: widget.showDelete,
               onDelete: () => deleteCrop(cropJson.name),
             );
           }).toList();
@@ -83,8 +80,6 @@ class CropsState extends State<CropsWidget> {
         });
       }
     } catch (e) {
-      print('Did not get crops');
-
       throw Exception('Failed to load crop');
     }
   }

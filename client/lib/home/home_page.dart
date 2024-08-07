@@ -83,7 +83,7 @@ class HomePageState extends State<HomePage> {
               child: CustomPaint(
                 size: const Size(300, 200),
                 painter: EllipsePainter(
-                  location: 'Limpopo',
+                  location: 'Northern Cape',
                   name: 'My Farm',
                   screenWidth: screenWidth,
                   theme: theme,

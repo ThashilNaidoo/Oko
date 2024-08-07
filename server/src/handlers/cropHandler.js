@@ -23,7 +23,7 @@ const getCrops = async (req, res) => {
       return res.status(404).send('User not found');
     }
 
-    const crops = user.crops.map(crop => ({name: capitalizeFirstCharacter(crop)}));
+    const crops = user.crops.map(crop => ({...crop, name: capitalizeFirstCharacter(crop.name)}));
     res.status(200).json(crops);
   } catch(error) {
     res.status(500).json({mesage: error.message});
@@ -48,7 +48,7 @@ const getCropDetails = async(req, res) => {
       return res.status(404).send('User not found');
     }
 
-    const crop = user.crops.find(crop => crop.name === req.params.name);
+    const crop = user.crops.find(crop => crop.name === req.params.name.toLowerCase());
 
     if(!crop) {
       return res.status(404).send('Crop not found');
@@ -60,41 +60,52 @@ const getCropDetails = async(req, res) => {
     const nowUTC = nowLocal.clone().utc().format();
     const startOfTodayLocal = nowLocal.clone().startOf('day');
 
-    console.log(lastUpdatedLocal);
-    console.log(startOfTodayLocal);
+    if(!lastUpdatedLocal || lastUpdatedLocal.isBefore(startOfTodayLocal)) {   
+      const generativeGemini = new GoogleGenerativeAI(geminiAPI);
+      const generativeModel = generativeGemini.getGenerativeModel({
+          model: 'gemini-1.5-flash',
+          systemInstruction: geminiPrompt,
+        }
+      ); 
 
-    if(!lastUpdatedLocal || lastUpdatedLocal.isBefore(startOfTodayLocal)) {
-      // Get descriptions from Gemini
-      const gemini = new GoogleGenerativeAI(geminiAPI);
-      const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: geminiPrompt });
+      const generativeChat = generativeModel.startChat();
+      const generativeResult = await generativeChat.sendMessage(`Current temperature: ${user.weather.currTemp}, condition: ${user.weather.condition}, wind speed: ${user.weather.windSpeed}, precipitation: ${user.weather.precipitation}, humidity: ${user.weather.humidity}
+        Estimate the yield of growing ${crop.name} in ${user.location} based on the weather conditions provided and general conditions of that area. Just the value from 0 to 100.
+        Estimate the weather suitability of growing ${crop.name} in ${user.location} based on the weather conditions provided and general conditions of that area. Just the value from 0 to 100.
+        Estimate the sustainability of growing ${crop.name} in ${user.location} based on the weather conditions provided and general conditions of that area. More work would result in a lower sustainability. Just the value from 0 to 100.
+        Using all the information provided, summarize in growing of the crop in 4 sentences. The last sentence should be a tip.
 
-      let result = await model.generateContent(`Current temperature: ${user.weather.currTemp}, condition: ${user.weather.condition}, wind speed: ${user.weather.windSpeed}, precipitation: ${user.weather.precipitation}, humidity: ${user.weather.humidity}
-        Estimate the yield of growing ${crop.name} in ${user.location} based on the weather conditions provided and general conditions of that area. Just give the decimial value from 0 to 1.
-        Estimate the weather suitability of growing ${crop.name} in ${user.location} based on the weather conditions provided and general conditions of that area. Just give the decimial value from 0 to 1.
-        Estimate the sustainability of growing ${crop.name} in ${user.location} based on the weather conditions provided and general conditions of that area. Just give the decimial value from 0 to 1.
-        Using all the information provided, summarize in growing of the crop in 3 sentences.
-        Give everything in order as 1 continuous text seperated by ";". Do not introduce yourself or greet the user, just give what is required.`);
-      response = await result.response;
-      const geminiResponse = await response.text();
-      const descriptionResponse = geminiResponse.split(';');
-      console.log(descriptionResponse);
+        Return as JSON with the following structure:
+        {
+          "yield": number,
+          "weatherSuitability": number,
+          "sustainability": number,
+          "description": string
+        }
+        
+        Do not greet the user.`);
+
+      let generativeText = generativeResult.response.text();
+      generativeText = generativeText.substring(generativeText.indexOf('{'), generativeText.indexOf('}') + 1);
+      generativeText = JSON.parse(generativeText);
+      console.log(generativeText);
 
       const updatedCrop = {
-        name: crop.name,
-        description: descriptionResponse[3],
-        yield: descriptionResponse[0],
-        weatherSuitability: descriptionResponse[1],
-        sustainability: descriptionResponse[2],
+        name: capitalizeFirstCharacter(crop.name),
+        description: generativeText.description,
+        yield: generativeText.yield,
+        weatherSuitability: generativeText.weatherSuitability,
+        sustainability: generativeText.sustainability,
         updatedAt: nowUTC,
       }
 
       const update = {
         $set: {
           'crops.$[crop].name': crop.name,
-          'crops.$[crop].description': descriptionResponse[6],
-          'crops.$[crop].yield': descriptionResponse[0],
-          'crops.$[crop].weatherSuitability': descriptionResponse[2],
-          'crops.$[crop].sustainability': descriptionResponse[4],
+          'crops.$[crop].description': generativeText.description,
+          'crops.$[crop].yield': generativeText.yield,
+          'crops.$[crop].weatherSuitability': generativeText.weatherSuitability,
+          'crops.$[crop].sustainability': generativeText.sustainability,
           'crops.$[crop].updatedAt': nowUTC,
         }        
       }
@@ -107,7 +118,11 @@ const getCropDetails = async(req, res) => {
 
       res.status(200).json(updatedCrop);
     } else {
-      res.status(200).json(crop);
+      const updatedCrop = {
+        ...crop,
+        name: capitalizeFirstCharacter(crop.name)
+      }
+      res.status(200).json(updatedCrop);
     }
   } catch(error) {
     res.status(500).json({message: error.message});

@@ -6,9 +6,17 @@ class InformationWidget extends StatelessWidget {
   const InformationWidget({
     super.key,
     required this.name,
+    required this.yield,
+    required this.weatherSuitability,
+    required this.sustainability,
+    required this.description,
   });
 
   final String name;
+  final double yield;
+  final double weatherSuitability;
+  final double sustainability;
+  final String description;
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +28,13 @@ class InformationWidget extends StatelessWidget {
           right: 0,
           child: Container(
             height: 420,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(44),
-              boxShadow: const [
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(44),
+                topRight: Radius.circular(44),
+              ),
+              boxShadow: [
                 BoxShadow(
                   color: Color.fromARGB(64, 0, 0, 0),
                   spreadRadius: 0,
@@ -33,47 +44,52 @@ class InformationWidget extends StatelessWidget {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.only(top: 30, left: 30, right: 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFF333333),
-                      fontSize: 32,
+              padding: const EdgeInsets.only(left: 30, right: 30),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 30),
+                    Text(
+                      name,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF333333),
+                        fontSize: 32,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla fermentum elit vel lectus sodales suscipit. Donec leo ante, mattis sit amet commodo quis, congue nec nulla. Fusce diam odio, ultricies eget ante eget, mollis sollicitudin nibh.',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFF333333),
-                      fontSize: 15,
+                    const SizedBox(height: 10),
+                    Text(
+                      description,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF333333),
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                  const Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularPercentage(
-                        name: 'Yield',
-                        percentage: 0.7,
-                      ),
-                      Spacer(),
-                      CircularPercentage(
-                        name: 'Weather Suitability',
-                        percentage: 0.62,
-                      ),
-                      Spacer(),
-                      CircularPercentage(
-                        name: 'Sustainability',
-                        percentage: 0.34,
-                      ),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 30),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularPercentage(
+                          name: 'Yield',
+                          percentage: yield,
+                        ),
+                        const Spacer(),
+                        CircularPercentage(
+                          name: 'Weather Suitability',
+                          percentage: weatherSuitability,
+                        ),
+                        const Spacer(),
+                        CircularPercentage(
+                          name: 'Sustainability',
+                          percentage: sustainability,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
           ),

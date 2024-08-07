@@ -30,9 +30,8 @@ class CropItemState extends State<CropItem> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CropDetailPage(
-              name: widget.name,
-              yield: widget.yield,
+            builder: (context) => CropDetailsPage(
+              cropName: widget.name,
             ),
           ),
         );
