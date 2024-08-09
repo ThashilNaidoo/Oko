@@ -127,22 +127,22 @@ class WeatherPageState extends State<WeatherPage> {
     Color dark = gradientsDay['clear']!.first;
     Color light = gradientsDay['clear']!.last;
     DateTime now = DateTime.now();
-    if (weather.condition.toLowerCase().contains("clear") && now.hour < 18) {
+    if (weather.condition.toLowerCase().contains("clear") && now.hour >= 6 && now.hour < 18) {
       dark = gradientsDay['clear']!.first;
       light = gradientsDay['clear']!.last;
-    } else if (weather.condition.toLowerCase().contains("cloudy") && now.hour < 18) {
+    } else if (weather.condition.toLowerCase().contains("cloudy") && now.hour >= 6 && now.hour < 18) {
       dark = gradientsDay['cloudy']!.first;
       light = gradientsDay['cloudy']!.last;
-    } else if (weather.condition.toLowerCase().contains("overcast") && now.hour < 18) {
+    } else if (weather.condition.toLowerCase().contains("overcast") && now.hour >= 6 && now.hour < 18) {
       dark = gradientsDay['overcast']!.first;
       light = gradientsDay['overcast']!.last;
-    } else if (weather.condition.toLowerCase().contains("clear") && now.hour >= 18) {
+    } else if (weather.condition.toLowerCase().contains("clear")) {
       dark = gradientsNight['clear']!.first;
       light = gradientsNight['clear']!.last;
-    } else if (weather.condition.toLowerCase().contains("cloudy") && now.hour >= 18) {
+    } else if (weather.condition.toLowerCase().contains("cloudy")) {
       dark = gradientsNight['cloudy']!.first;
       light = gradientsNight['cloudy']!.last;
-    } else if (weather.condition.toLowerCase().contains("overcast") && now.hour >= 18) {
+    } else if (weather.condition.toLowerCase().contains("overcast")) {
       dark = gradientsNight['overcast']!.first;
       light = gradientsNight['overcast']!.last;
     }
