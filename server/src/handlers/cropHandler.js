@@ -1,11 +1,9 @@
 const { MongoClient } = require('mongodb');
 const { mongoURI, dbConfig, geminiAPI, geminiPrompt } = require('../config/config');
+const { capitalizeFirstCharacter } = require('../common/capitalizeFirstCharacter');
+const { shouldUpdate } = require('../common/shouldUpdate');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const moment = require('moment-timezone');
-
-const capitalizeFirstCharacter = (text) => {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
 
 const getCrops = async (req, res) => {
   const client = new MongoClient(mongoURI, dbConfig);
@@ -55,12 +53,9 @@ const getCropDetails = async(req, res) => {
     }
 
     // Update the last time the crop was fetched
-    const lastUpdatedLocal = crop.updatedAt ? moment.tz(crop.updatedAt, user.timezone) : null;
-    const nowLocal = moment.tz(user.timezone);
-    const nowUTC = nowLocal.clone().utc().format();
-    const startOfTodayLocal = nowLocal.clone().startOf('day');
+    const { update, nowUTC } = shouldUpdate(crop.updatedAt, user.timezone);
 
-    if(!lastUpdatedLocal || lastUpdatedLocal.isBefore(startOfTodayLocal)) {   
+    if(update) {   
       const generativeGemini = new GoogleGenerativeAI(geminiAPI);
       const generativeModel = generativeGemini.getGenerativeModel({
           model: 'gemini-1.5-flash',

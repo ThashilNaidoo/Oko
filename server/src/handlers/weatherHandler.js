@@ -1,12 +1,10 @@
 const { weatherAPI, geminiAPI, geminiPrompt, mongoURI, dbConfig } = require('../config/config');
 const { clear, cloudy } = require('../constants/weatherConditions');
+const { capitalizeFirstCharacter } = require('../common/capitalizeFirstCharacter');
+const { shouldUpdate } = require('../common/shouldUpdate');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { MongoClient } = require('mongodb');
 const moment = require('moment-timezone');
-
-const capitalizeFirstCharacter = (text) => {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
 
 const getWeather = async (req, res) => {
   const client = new MongoClient(mongoURI, dbConfig);
@@ -26,13 +24,10 @@ const getWeather = async (req, res) => {
     }
 
     // Update the last time the weather was fetched
-    const lastUpdatedLocal = user.weather.updatedAt ? moment.tz(user.weather.updatedAt, user.timezone) : null;
-    const nowLocal = moment.tz(user.timezone);
-    const nowUTC = nowLocal.utc().format();
-    const startOfTodayLocal = nowLocal.clone().startOf('day');
+    const { update, nowUTC } = shouldUpdate(user.weather.updatedAt, user.timezone);
     
     // Update weather info in mongodb
-    if(!lastUpdatedLocal || lastUpdatedLocal.isBefore(startOfTodayLocal)) {
+    if(update) {
       const url = `https://api.weatherapi.com/v1/forecast.json?q=${user.location}&days=7&key=${weatherAPI}`;
       
       let response = await fetch(url);
@@ -138,73 +133,3 @@ const getWeather = async (req, res) => {
 module.exports = {
   getWeather,
 }
-
-// const weather = {
-//   "currTemp": 14.7,
-//   "maxTemp": 19.4,
-//   "minTemp": 10.4,
-//   "condition": "Overcast",
-//   "conditionSentence": "Describe condition using Gemini",
-//   "sevenDay": [
-//     [
-//       19.4,
-//       10.4
-//     ],
-//     [
-//       18,
-//       9.6
-//     ],
-//     [
-//       18.1,
-//       10.8
-//     ],
-//     [
-//       19.5,
-//       11.8
-//     ],
-//     [
-//       17.1,
-//       8.1
-//     ],
-//     [
-//       14.8,
-//       4.1
-//     ],
-//     [
-//       17,
-//       8.3
-//     ]
-//   ],
-//   "temperature": [
-//     15.8,
-//     15.2,
-//     14.5,
-//     13.6,
-//     13.1,
-//     11.8,
-//     11,
-//     10.4,
-//     11.3,
-//     12.8,
-//     14.7,
-//     16.5,
-//     17.7,
-//     18.6,
-//     19.2,
-//     19.4,
-//     19,
-//     18.2,
-//     16.6,
-//     15.5,
-//     14.5,
-//     14.1,
-//     13.8,
-//     13.3
-//   ],
-//   "windSpeed": 11.2,
-//   "windDirection": "SW",
-//   "precipitation": 0,
-//   "chanceOfRain": 0,
-//   "humidity": 16,
-//   "feelsLike": 14.2
-// }
