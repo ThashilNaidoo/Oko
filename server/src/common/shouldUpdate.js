@@ -9,7 +9,7 @@ const shouldUpdate = (updatedAt, timezone) => {
   const shouldUpdate = !lastUpdatedLocal || lastUpdatedLocal.isBefore(startOfTodayLocal);
 
   return {
-    shouldUpdate: shouldUpdate,
+    update: shouldUpdate,
     nowUTC: nowUTC,
   }
 }
