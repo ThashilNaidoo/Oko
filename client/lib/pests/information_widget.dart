@@ -6,11 +6,13 @@ class InformationWidget extends StatelessWidget {
   const InformationWidget({
     super.key,
     required this.name,
-    required this.threat,
+    required this.description,
+    required this.danger,
   });
 
   final String name;
-  final double threat;
+  final String description;
+  final double danger;
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +53,14 @@ class InformationWidget extends StatelessWidget {
                         ),
                       ),
                       CircularPercentage(
-                        name: 'Treat',
-                        percentage: threat,
+                        name: 'Danger',
+                        percentage: danger,
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla fermentum elit vel lectus sodales suscipit. Donec leo ante, mattis sit amet commodo quis, congue nec nulla. Fusce diam odio, ultricies eget ante eget, mollis sollicitudin nibh.',
+                    description,
                     style: GoogleFonts.poppins(
                       color: const Color(0xFF333333),
                       fontSize: 15,

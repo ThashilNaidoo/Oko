@@ -2,16 +2,59 @@ import 'package:client/pests/pests_page.dart';
 import 'package:flutter/material.dart';
 import 'package:client/home/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class PestWidget extends StatelessWidget {
-  const PestWidget({
-    super.key,
-    required this.name,
-    required this.description,
-  });
-
+class Pest {
   final String name;
   final String description;
+
+  const Pest({
+    this.name = '',
+    this.description = '',
+  });
+
+  factory Pest.fromJson(Map<String, dynamic> json) {
+    return Pest(
+      name: json['name'] as String,
+      description: json['description'] as String,
+    );
+  }
+}
+
+class PestWidget extends StatefulWidget {
+  const PestWidget({super.key});
+
+  @override
+  PestState createState() => PestState();
+}
+
+class PestState extends State<PestWidget> {
+  Pest pest = const Pest();
+
+  Future<void> fetchPest() async {
+    String url = 'http://10.0.2.2:3000/pests/featured?name=John%20Doe';
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> body = jsonDecode(response.body);
+        Pest pest = Pest.fromJson(body);
+
+        setState(() {
+          this.pest = pest;
+        });
+      }
+    } catch (e) {
+      throw Exception('Failed to load pest');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPest();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,11 +119,11 @@ class PestWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    pest.name,
                     style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF333333)),
                   ),
                   Text(
-                    description,
+                    pest.description,
                     style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF999999)),
                   ),
                 ],

@@ -6,11 +6,9 @@ class PestItem extends StatefulWidget {
   const PestItem({
     super.key,
     required this.name,
-    required this.threat,
   });
 
   final String name;
-  final double threat;
 
   @override
   PestItemState createState() => PestItemState();
@@ -30,8 +28,7 @@ class PestItemState extends State<PestItem> {
           context,
           MaterialPageRoute(
             builder: (context) => PestDetailsPage(
-              name: widget.name,
-              threat: widget.threat,
+              pestName: widget.name,
             ),
           ),
         );

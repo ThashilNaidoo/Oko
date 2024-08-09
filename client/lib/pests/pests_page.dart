@@ -3,14 +3,13 @@ import 'package:client/utils/ellipse_painter.dart';
 import 'package:client/pests/pest_item.dart';
 import 'package:client/utils/back_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class Pest {
   final String name;
-  final double threat;
-
   const Pest({
     this.name = '',
-    this.threat = 0.0,
   });
 
   factory Pest.fromJson(Map<String, dynamic> json) {
@@ -28,14 +27,31 @@ class PestsPage extends StatefulWidget {
 }
 
 class PestsPageState extends State<PestsPage> {
-  List<Pest> items = [];
+  List<PestItem> items = [];
 
-  void fetchPests() {
-    print('Fetching pests');
-    items.add(const Pest(name: 'Rodent', threat: 0.7));
-    items.add(const Pest(name: 'Bird', threat: 0.8));
-    items.add(const Pest(name: 'Caterpillar', threat: 0.4));
-    items.add(const Pest(name: 'Spider', threat: 0.3));
+  Future<void> fetchPests() async {
+    String url = 'http://10.0.2.2:3000/pests?name=John%20Doe';
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        List<dynamic> body = jsonDecode(response.body);
+        List<PestItem> pestsJson = body.map((dynamic item) {
+          if (item is Map<String, dynamic>) {
+            Pest pest = Pest.fromJson(item);
+            return PestItem(name: pest.name);
+          } else {
+            throw const FormatException('Invalid data format');
+          }
+        }).toList();
+
+        setState(() {
+          items = pestsJson;
+        });
+      }
+    } catch (e) {
+      throw Exception('Failed to load pest');
+    }
   }
 
   @override
@@ -50,17 +66,6 @@ class PestsPageState extends State<PestsPage> {
     final double screenWidth = MediaQuery.of(context).size.width;
     final theme = Theme.of(context);
 
-    List<Widget> pestItems = items
-        .asMap()
-        .entries
-        .map(
-          (entry) => PestItem(
-            name: entry.value.name,
-            threat: entry.value.threat,
-          ),
-        )
-        .toList();
-
     return Scaffold(
       body: Stack(
         children: [
@@ -70,7 +75,7 @@ class PestsPageState extends State<PestsPage> {
             child: Column(
               children: [
                 const SizedBox(height: 150),
-                ...pestItems,
+                ...items,
               ],
             ),
           ),
