@@ -6,6 +6,7 @@ import 'package:client/home/news_widget.dart';
 import 'package:client/home/pests_widget.dart';
 import 'package:client/home/weather_widget.dart';
 import 'package:tuple/tuple.dart';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -15,9 +16,31 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+  Key _weatherKey = UniqueKey();
+  Key _cropsKey = UniqueKey();
+  Key _pestsKey = UniqueKey();
+
+  Future<void> updateData() async {
+    String url = 'http://10.0.2.2:3000/update?name=John%20Doe';
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _weatherKey = UniqueKey();
+          _cropsKey = UniqueKey();
+          _pestsKey = UniqueKey();
+        });
+      }
+    } catch (e) {
+      throw Exception('Failed to update data. Please try again.');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    updateData();
   }
 
   @override
@@ -54,24 +77,29 @@ class HomePageState extends State<HomePage> {
         backgroundColor: const Color(0xFFF5FAF8),
         body: Stack(
           children: [
-            const SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
+            SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: Padding(
-                padding: EdgeInsets.only(left: padding, right: padding, top: 150),
+                padding: const EdgeInsets.only(left: padding, right: padding, top: 150),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    WeatherWidget(),
-                    SizedBox(height: 30),
-                    CropsWidget(),
-                    SizedBox(height: 10),
-                    NewsWidget(items: news),
-                    SizedBox(height: 30),
-                    PestWidget(
-                      name: 'Rodents',
-                      description: 'High alert for rodents in the area. Use  pesticide solution on your crops immediately to prevent possible loss.',
+                    WeatherWidget(
+                      key: _weatherKey,
                     ),
-                    SizedBox(height: 30)
+                    const SizedBox(height: 30),
+                    CropsWidget(
+                      key: _cropsKey,
+                    ),
+                    const SizedBox(height: 10),
+                    const NewsWidget(
+                      items: news,
+                    ),
+                    const SizedBox(height: 30),
+                    PestWidget(
+                      key: _pestsKey,
+                    ),
+                    const SizedBox(height: 100)
                   ],
                 ),
               ),
