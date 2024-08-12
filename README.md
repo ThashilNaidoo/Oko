@@ -4,6 +4,9 @@ Welcome to OKO, an innovative AI-powered farming assistant app designed to empow
 ## Overview
 OKO leverages Google's Gemini to provide African farmers with real-time insights, personalized advice, and powerful tools to optimize their farming practices. From monitoring crop growth to analyzing weather conditions and predicting pest threats. OKO is a comprehensive farming companion tailored to meet the unique challenges faced by farmers in diverse African climates.
 
+## Youtube Video
+[OKO - Gemini Powered Farming Assistant](https://youtu.be/GI82panCmdQ)
+
 ## Features
 ### 🌍 Localized Weather Insights
 OKO offers hyper-local weather forecasts and detailed reports on factors like precipitation, humidity, and wind, allowing farmers to make informed decisions that enhance crop yields.
