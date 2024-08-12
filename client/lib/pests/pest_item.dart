@@ -38,17 +38,16 @@ class PestItemState extends State<PestItem> {
           Container(
             height: 130,
             width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color.fromARGB(255, 41, 99, 175), Color.fromARGB(255, 161, 210, 255)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage('http://10.0.2.2:3000/public/images/${widget.name.toLowerCase()}_landscape.png'),
+                fit: BoxFit.fill,
               ),
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(3.0),
                 topRight: Radius.circular(3.0),
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Color(0xFF999999),
                   spreadRadius: 0,

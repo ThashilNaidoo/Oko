@@ -30,7 +30,7 @@ class CircularPercentage extends StatelessWidget {
           lineWidth: 10.0,
           percent: percentage,
           center: Text(
-            '${percentage * 100}%',
+            '${(percentage * 100).toStringAsFixed(0)}%',
             style: GoogleFonts.poppins(
               fontSize: 15,
               fontWeight: FontWeight.bold,

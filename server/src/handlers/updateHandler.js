@@ -4,8 +4,8 @@ const { clear, cloudy } = require('../constants/weatherConditions');
 const { shouldUpdate } = require('../common/shouldUpdate');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const updateWeather = async (name) =>
-  {
+const updateWeather = async (email) =>
+{
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
@@ -13,7 +13,7 @@ const updateWeather = async (name) =>
     await client.connect();
 
     const userCollection = client.db('oko-db').collection('Users');
-    const query = { name: name };
+    const query = { email: email };
 
     const user = await userCollection.findOne(query);
 
@@ -110,10 +110,14 @@ const updateWeather = async (name) =>
       const update = { $set: { "weather": weather } };
       await userCollection.updateOne(query, update);
 
-      console.log(`Updated weather for ${name}`);
+      console.log(`Updated weather for ${email}`);
     }
 
-    return true;
+    return {
+      weather: true,
+      farmName: user.farmName,
+      location: user.location
+    };
   }
   catch (error)
   {
@@ -126,14 +130,14 @@ const updateWeather = async (name) =>
   }
 }
 
-const updateCrops = async (name) =>
+const updateCrops = async (email) =>
 {
   const client = new MongoClient(mongoURI, dbConfig);
 
   try {
     await client.connect();
 
-    let query = { name: name };
+    let query = { email: email };
 
     const userCollection = client.db('oko-db').collection('Users');
 
@@ -142,6 +146,11 @@ const updateCrops = async (name) =>
     if(user === null)
     {
       return res.status(404).send('User not found');
+    }
+
+    if(!user.crops || user.crops.length <= 0)
+    {
+      return true;
     }
 
     const cropNames = user.crops.map(crop => crop.name);
@@ -215,7 +224,7 @@ const updateCrops = async (name) =>
       }
 
       await userCollection.updateOne(query, update);
-      console.log(`Updated crops for ${name}`);
+      console.log(`Updated crops for ${email}`);
     }
 
     return true;
@@ -231,7 +240,97 @@ const updateCrops = async (name) =>
   }
 }
 
-const updatePests = async (name) =>
+const updateTip = async (email) =>
+  {
+    const client = new MongoClient(mongoURI, dbConfig);
+  
+    try {
+      await client.connect();
+  
+      let query = { email: email };
+  
+      const userCollection = client.db('oko-db').collection('Users');
+  
+      const user = await userCollection.findOne(query);
+  
+      if(user === null)
+      {
+        return res.status(404).send('User not found');
+      }
+  
+      if(!user.crops || user.crops.length <= 0)
+      {
+        const update =
+        {
+          $set:
+          {
+            'tip': 'Welcome! I will be your personal AI farming assistant'
+          }        
+        }
+  
+        await userCollection.updateOne(query, update);
+        return true;
+      }
+
+      const cropNames = user.crops.map(crop => crop.name);
+  
+      const { update, nowUTC } = shouldUpdate(user.updatedAt, user.timezone);
+  
+      if(update)
+      {   
+        const generativeGemini = new GoogleGenerativeAI(geminiAPI);
+        const generativeModel = generativeGemini.getGenerativeModel(
+          {
+            model: 'gemini-1.5-flash',
+            systemInstruction: geminiPrompt,
+          }
+        ); 
+  
+        const generativeChat = generativeModel.startChat();
+        const generativeResult = await generativeChat.sendMessage(`Current temperature: ${user.weather.currTemp}, condition: ${user.weather.condition}, wind speed: ${user.weather.windSpeed}, precipitation: ${user.weather.precipitation}, humidity: ${user.weather.humidity}.
+          Crops: ${cropNames}, Location: ${user.location}.
+          
+          Using all the information, provide a single sentence of advice regarding farming.
+  
+          Return as JSON with the following structure:
+          {
+            "tip": string
+          }
+          
+          Do not greet the user.
+        `);
+  
+        let generativeText = generativeResult.response.text();
+        generativeText = generativeText.substring(generativeText.indexOf('{'), generativeText.indexOf('}') + 1);
+        generativeText = JSON.parse(generativeText);
+        console.log(generativeText);
+  
+        const update =
+        {
+          $set:
+          {
+            'tip': generativeText.tip
+          }        
+        }
+  
+        await userCollection.updateOne(query, update);
+        console.log(`Updated tip of the day for ${email}`);
+      }
+  
+      return true;
+    }
+    catch(error)
+    {
+      console.log(error);
+      return false;
+    }
+    finally
+    {
+      await client.close();
+    }
+}
+
+const updatePests = async (email) =>
 {
   const client = new MongoClient(mongoURI, dbConfig);
 
@@ -239,7 +338,7 @@ const updatePests = async (name) =>
   {
     await client.connect();
 
-    let query = { name: name };
+    let query = { email: email };
 
     const userCollection = client.db('oko-db').collection('Users');
 
@@ -249,11 +348,26 @@ const updatePests = async (name) =>
     {
       return res.status(404).send('User not found');
     }
+    
+    const { update, nowUTC } = shouldUpdate(user.updatedAt, user.timezone);
+
+    if(!user.pests || user.pests.length <= 0 || !user.crops || user.crops.length <= 0)
+    {
+      const update =
+      {
+        $set:
+        {
+          'updatedAt': nowUTC
+        }        
+      }
+
+      await userCollection.updateOne(query, update);
+      return true;
+    }
 
     const cropNames = user.crops.map(crop => crop.name);
     const pestNames = user.pests.map(pest => pest.name);
 
-    const { update, nowUTC } = shouldUpdate(user.updatedAt, user.timezone);
 
     if(update)
     {   
@@ -315,7 +429,7 @@ const updatePests = async (name) =>
       }
 
       await userCollection.updateOne(query, update);
-      console.log(`Updated pests for ${name}`);
+      console.log(`Updated pests for ${email}`);
     }
 
     return true;
@@ -333,18 +447,21 @@ const updatePests = async (name) =>
 
 const update = async (req, res) =>
 {
-  const name = req.query.name;
-  const weather = await updateWeather(name);
-  const crops = await updateCrops(name);
-  const pests = await updatePests(name);
+  const email = req.user.email;
+  const { weather, farmName, location } = await updateWeather(email);
+  const crops = await updateCrops(email);
+  const tip = await updateTip(email);
+  const pests = await updatePests(email);
 
-  if(weather && crops && pests)
+  console.log(weather, crops, tip, pests);
+
+  if(weather && crops && pests && tip)
   {
-    res.status(200).json({weather: weather, crops: crops, pests: pests});
+    res.status(200).json({farmName, location});
   }
   else
   {
-    res.status(500).json({weather: weather, crops: crops, pests: pests});
+    res.status(500).json({farmName: '', location: ''});
   }
 }
 

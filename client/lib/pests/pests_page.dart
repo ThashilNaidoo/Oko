@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Pest {
   final String name;
   const Pest({
@@ -30,9 +32,13 @@ class PestsPageState extends State<PestsPage> {
   List<PestItem> items = [];
 
   Future<void> fetchPests() async {
-    String url = 'http://10.0.2.2:3000/pests?name=John%20Doe';
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    String url = 'http://10.0.2.2:3000/pests';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer $token',
+      });
 
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);

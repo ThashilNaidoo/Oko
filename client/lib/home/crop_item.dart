@@ -58,7 +58,10 @@ class CropItemState extends State<CropItem> {
                   height: 100,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
-                    color: Colors.amber,
+                    image: DecorationImage(
+                      image: NetworkImage('http://10.0.2.2:3000/public/images/${widget.name.toLowerCase()}.png'),
+                      fit: BoxFit.fill,
+                    ),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0xFF999999),

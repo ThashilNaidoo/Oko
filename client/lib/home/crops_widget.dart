@@ -4,6 +4,8 @@ import 'package:client/home/utils.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Crop {
   final String name;
   final double yield;
@@ -43,9 +45,13 @@ class CropsState extends State<CropsWidget> {
   }
 
   Future<void> fetchCrops() async {
-    const url = 'http://10.0.2.2:3000/crops?name=John%20Doe';
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    const url = 'http://10.0.2.2:3000/crops';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer $token',
+      });
 
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
@@ -85,17 +91,14 @@ class CropsState extends State<CropsWidget> {
   }
 
   Future<void> addCrop(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
     String url = 'http://10.0.2.2:3000/crops/$name';
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, Object>{
-          'name': 'John Doe',
-        }),
-      );
+      final response = await http.post(Uri.parse(url), headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      });
 
       if (response.statusCode == 200) {
         fetchCrops();
@@ -138,16 +141,16 @@ class CropsState extends State<CropsWidget> {
   }
 
   Future<void> deleteCrop(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
     String url = 'http://10.0.2.2:3000/crops/$name';
     try {
       final response = await http.delete(
         Uri.parse(url),
-        headers: <String, String>{
+        headers: {
           'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
         },
-        body: jsonEncode(<String, Object>{
-          'name': 'John Doe',
-        }),
       );
 
       if (response.statusCode == 200) {

@@ -1,12 +1,35 @@
+import 'dart:convert';
+
+import 'package:client/auth/login_page.dart';
+import 'package:client/home/tip_widget.dart';
 import 'package:client/utils/oko_button.dart';
+import 'package:client/utils/signout_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:client/home/crops_widget.dart';
 import 'package:client/home/ellipse_painter.dart';
-import 'package:client/home/news_widget.dart';
 import 'package:client/home/pests_widget.dart';
 import 'package:client/home/weather_widget.dart';
-import 'package:tuple/tuple.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+class UserData {
+  final String location;
+  final String farmName;
+
+  const UserData({
+    this.location = '',
+    this.farmName = '',
+  });
+
+  factory UserData.fromJson(Map<String, dynamic> json) {
+    return UserData(
+      farmName: json['farmName'] as String,
+      location: json['location'] as String,
+    );
+  }
+}
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -19,17 +42,26 @@ class HomePageState extends State<HomePage> {
   Key _weatherKey = UniqueKey();
   Key _cropsKey = UniqueKey();
   Key _pestsKey = UniqueKey();
+  UserData userData = const UserData();
 
   Future<void> updateData() async {
-    String url = 'http://10.0.2.2:3000/update?name=John%20Doe';
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    String url = 'http://10.0.2.2:3000/update';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer $token',
+      });
 
       if (response.statusCode == 200) {
+        Map<String, dynamic> body = jsonDecode(response.body);
+        UserData userData = UserData.fromJson(body);
+
         setState(() {
           _weatherKey = UniqueKey();
           _cropsKey = UniqueKey();
           _pestsKey = UniqueKey();
+          this.userData = userData;
         });
       }
     } catch (e) {
@@ -48,29 +80,6 @@ class HomePageState extends State<HomePage> {
     final double screenWidth = MediaQuery.of(context).size.width;
     final theme = Theme.of(context);
     const double padding = 25.0;
-
-    const List<Tuple2<String, int>> news = [
-      Tuple2(
-        '07 July Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        1,
-      ),
-      Tuple2(
-        '07 July Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        2,
-      ),
-      Tuple2(
-        '07 July Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        5,
-      ),
-      Tuple2(
-        '07 July Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        7,
-      ),
-      Tuple2(
-        '07 July Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        10,
-      ),
-    ];
 
     return GestureDetector(
       child: Scaffold(
@@ -92,14 +101,36 @@ class HomePageState extends State<HomePage> {
                       key: _cropsKey,
                     ),
                     const SizedBox(height: 10),
-                    const NewsWidget(
-                      items: news,
-                    ),
+                    const TipWidget(),
                     const SizedBox(height: 30),
                     PestWidget(
                       key: _pestsKey,
                     ),
-                    const SizedBox(height: 100)
+                    const SizedBox(height: 50),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () async {
+                          await FirebaseAuth.instance.signOut();
+                          Future.delayed(const Duration(seconds: 3), () {
+                            Navigator.of(context, rootNavigator: true).push(
+                              MaterialPageRoute(
+                                builder: (_) => const LoginPage(),
+                              ),
+                            );
+                          });
+                        },
+                        child: Text(
+                          'Sign out',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0A5C36),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -111,8 +142,8 @@ class HomePageState extends State<HomePage> {
               child: CustomPaint(
                 size: const Size(300, 200),
                 painter: EllipsePainter(
-                  location: 'Northern Cape',
-                  name: 'My Farm',
+                  location: userData.location,
+                  name: userData.farmName,
                   screenWidth: screenWidth,
                   theme: theme,
                 ),

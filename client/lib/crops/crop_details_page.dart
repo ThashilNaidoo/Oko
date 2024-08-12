@@ -5,6 +5,8 @@ import 'package:client/utils/back_widget.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Crop {
   final double yield;
   final double weatherSuitability;
@@ -44,9 +46,13 @@ class CropDetailsPageState extends State<CropDetailsPage> {
   Crop crop = const Crop();
 
   Future<void> fetchCropDetails(cropName) async {
-    String url = 'http://10.0.2.2:3000/crops/$cropName?name=John%20Doe';
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    String url = 'http://10.0.2.2:3000/crops/$cropName';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer $token',
+      });
 
       if (response.statusCode == 200) {
         Map<String, dynamic> body = jsonDecode(response.body);
@@ -80,7 +86,7 @@ class CropDetailsPageState extends State<CropDetailsPage> {
             height: 520,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/${widget.cropName.toLowerCase()}.png'),
+                image: NetworkImage('http://10.0.2.2:3000/public/images/${widget.cropName.toLowerCase()}.png'),
                 fit: BoxFit.fill,
               ),
             ),

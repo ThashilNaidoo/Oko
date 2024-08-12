@@ -5,6 +5,8 @@ import 'package:client/utils/back_widget.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Pest {
   final String name;
   final String description;
@@ -41,9 +43,13 @@ class PestDetailsPageState extends State<PestDetailsPage> {
   Pest pest = const Pest();
 
   Future<void> fetchPest(pest) async {
-    String url = 'http://10.0.2.2:3000/pests/$pest?name=John%20Doe';
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    String url = 'http://10.0.2.2:3000/pests/$pest';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer $token',
+      });
 
       if (response.statusCode == 200) {
         Map<String, dynamic> body = jsonDecode(response.body);
@@ -73,7 +79,7 @@ class PestDetailsPageState extends State<PestDetailsPage> {
             height: 520,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/pests/${pest.name.toLowerCase()}.webp'),
+                image: NetworkImage('http://10.0.2.2:3000/public/images/${widget.pestName.toLowerCase()}_portrait.png'),
                 fit: BoxFit.fill,
               ),
             ),

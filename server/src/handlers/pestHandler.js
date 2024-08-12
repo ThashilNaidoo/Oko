@@ -4,13 +4,15 @@ const { capitalizeFirstCharacter } = require('../common/capitalizeFirstCharacter
 
 const getPests = async (req, res) =>
 {
+  const email = req.user.email;
+
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
   {  
     await client.connect();
 
-    const query = { name: req.query['name'] };
+    const query = { email: email };
 
     const userCollection = client.db('oko-db').collection('Users');
 
@@ -36,13 +38,15 @@ const getPests = async (req, res) =>
 
 const getFeaturedPest = async(req, res) =>
 {
+  const email = req.user.email;
+
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
   {  
     await client.connect();
 
-    const query = { name: req.query['name'] };
+    const query = { email: email };
 
     const userCollection = client.db('oko-db').collection('Users');
 
@@ -70,13 +74,15 @@ const getFeaturedPest = async(req, res) =>
 
 const getPestDetails = async(req, res) =>
 {
+  const email = req.user.email;
+
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
   {
     await client.connect();
 
-    let query = { name: req.query.name };
+    let query = { email: email };
 
     const userCollection = client.db('oko-db').collection('Users');
 

@@ -8,7 +8,7 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ server });
 
-wss.on('connection', async (ws) => {
+wss.on('connection', async (ws, req) => {
   console.log('New client connected');
   
   const gemini = new GoogleGenerativeAI(geminiAPI);

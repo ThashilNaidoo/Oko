@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Weather {
   final double currTemp;
   final double maxTemp;
@@ -38,9 +40,13 @@ class WeatherState extends State<WeatherWidget> {
   Weather weather = const Weather();
 
   Future<void> fetchWeather() async {
-    String url = 'http://10.0.2.2:3000/weather?name=John%20Doe';
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    String url = 'http://10.0.2.2:3000/weather';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer $token',
+      });
 
       if (response.statusCode == 200) {
         Map<String, dynamic> body = jsonDecode(response.body);

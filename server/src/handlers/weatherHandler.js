@@ -5,16 +5,16 @@ const moment = require('moment-timezone');
 
 const getWeather = async (req, res) =>
 {
+  const email = req.user.email;
+
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
   { 
     await client.connect();
 
-    const name = req.query.name;
-
     const userCollection = client.db('oko-db').collection('Users');
-    const query = { name: name };
+    const query = { email: email };
 
     const user = await userCollection.findOne(query);
 

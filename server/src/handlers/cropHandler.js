@@ -2,16 +2,19 @@ const { MongoClient } = require('mongodb');
 const { mongoURI, dbConfig, geminiAPI, geminiPrompt } = require('../config/config');
 const { capitalizeFirstCharacter } = require('../common/capitalizeFirstCharacter');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const agenda = require('../jobs/agenda');
 
 const getCrops = async (req, res) =>
 {
+  const email = req.user.email;
+
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
   {  
     await client.connect();
 
-    const query = { name: req.query['name'] };
+    const query = { email: email };
 
     const userCollection = client.db('oko-db').collection('Users');
 
@@ -20,6 +23,11 @@ const getCrops = async (req, res) =>
     if(user === null)
     {
       return res.status(404).send('User not found');
+    }
+
+    if(!user.crops || user.crops.length <= 0)
+    {
+      return res.status(200).json([]);
     }
 
     const crops = user.crops.map(crop => ({...crop, name: capitalizeFirstCharacter(crop.name)}));
@@ -37,13 +45,15 @@ const getCrops = async (req, res) =>
 
 const getCropDetails = async(req, res) =>
 {
+  const email = req.user.email;
+
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
   {
     await client.connect();
 
-    let query = { name: req.query.name };
+    let query = { email: email };
 
     const userCollection = client.db('oko-db').collection('Users');
 
@@ -79,18 +89,19 @@ const getCropDetails = async(req, res) =>
 
 const addCrop = async (req, res) =>
 {
+  const email = req.user.email;
+
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
   {
-    const name = req.body.name;
     const newCrop = req.params.crop.toLowerCase();
 
     await client.connect();
 
     const userCollection = client.db('oko-db').collection('Users');
 
-    const query = { name: name };
+    const query = { email: email };
 
     const user = await userCollection.findOne(query);
 
@@ -128,6 +139,11 @@ const addCrop = async (req, res) =>
           "sustainability": number,
           "description": string
         }
+
+        If the provided crop is not a type of crop, return the following JSON:
+        {
+          "errorReason": string
+        }
         
         Do not greet the user.
       `);
@@ -136,6 +152,11 @@ const addCrop = async (req, res) =>
       generativeText = generativeText.substring(generativeText.indexOf('{'), generativeText.indexOf('}') + 1);
       generativeText = JSON.parse(generativeText);
       console.log(generativeText);
+
+      if(generativeText.errorReason)
+      {
+        return res.status(400).send('Not a valid crop');
+      }
 
       cropToAdd =
       {
@@ -151,12 +172,14 @@ const addCrop = async (req, res) =>
       return res.status(400).send('No new crops to add');
     }
 
-    const update = { $push: { crops: cropToAdd } };
+    const update = { $push: { crops: cropToAdd } };0
     const result = await userCollection.updateOne(query, update);
+
+    agenda.schedule('in 10 seconds', 'generate crop images', { crop: cropToAdd });
     
     if (result.modifiedCount > 0)
     {
-      res.send(`${newCrop} added successfully`);
+      res.status(200).send(`${newCrop} added successfully`);
     }
     else
     {
@@ -175,18 +198,19 @@ const addCrop = async (req, res) =>
 
 const removeCrop = async (req, res) =>
 {
+  const email = req.user.email;
+
   const client = new MongoClient(mongoURI, dbConfig);
 
   try
   {
-    const name = req.body.name;
     const removedCrop = req.params.crop.toLowerCase();
 
     await client.connect();
 
     const userCollection = client.db('oko-db').collection('Users');
 
-    const query = { name: name };
+    const query = { email: email };
     const update = { $pull: { crops: { name: removedCrop } } };
 
     const result = await userCollection.updateOne(query, update);

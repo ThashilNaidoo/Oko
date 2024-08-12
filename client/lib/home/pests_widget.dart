@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Pest {
   final String name;
   final String description;
@@ -33,9 +35,13 @@ class PestState extends State<PestWidget> {
   Pest pest = const Pest();
 
   Future<void> fetchPest() async {
-    String url = 'http://10.0.2.2:3000/pests/featured?name=John%20Doe';
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    String url = 'http://10.0.2.2:3000/pests/featured';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer $token',
+      });
 
       if (response.statusCode == 200) {
         Map<String, dynamic> body = jsonDecode(response.body);
@@ -76,17 +82,16 @@ class PestState extends State<PestWidget> {
           const SizedBox(height: 10),
           Container(
             height: 175,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color.fromARGB(255, 175, 95, 41), Color.fromARGB(255, 255, 230, 161)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage('http://10.0.2.2:3000/public/images/${pest.name.toLowerCase()}_landscape.png'),
+                fit: BoxFit.fill,
               ),
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(15.0),
                 topRight: Radius.circular(15.0),
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Color(0xFF999999),
                   spreadRadius: 0,
@@ -97,7 +102,6 @@ class PestState extends State<PestWidget> {
             ),
           ),
           Container(
-            height: 80,
             decoration: const BoxDecoration(
               color: Color(0xFFF2F2F2),
               borderRadius: BorderRadius.only(
@@ -122,9 +126,10 @@ class PestState extends State<PestWidget> {
                     pest.name,
                     style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF333333)),
                   ),
+                  const SizedBox(height: 10),
                   Text(
                     pest.description,
-                    style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF999999)),
+                    style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF999999)),
                   ),
                 ],
               ),
