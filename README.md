@@ -113,3 +113,21 @@ npm start
 ```
 
 Thank you for choosing OKO — cultivating smarter farms, harvesting brighter futures.
+
+## Screenshots
+### Home
+![Screenshot_1723496877](https://github.com/user-attachments/assets/07fb3c91-9fbd-4935-b884-25554e9957cf)
+
+### Weather
+![Screenshot_1723495641](https://github.com/user-attachments/assets/638f9704-bcf7-460f-9d86-6815ea05a492)
+![Screenshot_1723495648](https://github.com/user-attachments/assets/dc8ca360-c11e-4150-be20-2d68f167c67b)
+
+### Crops
+![Screenshot_1723496287](https://github.com/user-attachments/assets/b2ffb378-99c5-4f1f-967a-a97d323b0e24)
+
+### Pests
+![Screenshot_1723495731](https://github.com/user-attachments/assets/2037f796-8c0f-416c-9ac5-0c0aefcbef18)
+![Screenshot_1723495814](https://github.com/user-attachments/assets/78538755-d43e-4edc-ab54-7fe14f3c21ae)
+
+### OKO Chat
+![Screenshot_1723497106](https://github.com/user-attachments/assets/cea403da-7390-4fa9-9129-85d4d3546725)
