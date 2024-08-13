@@ -109,7 +109,7 @@ cd oko/server
 
 ```
 npm install
-npm start
+node src/server.js
 ```
 
 Thank you for choosing OKO — cultivating smarter farms, harvesting brighter futures.
